@@ -37,9 +37,9 @@ type DataModel = {
     uuid: str
 }
 
-iCDN.content(uuid: str) -> bytes
+iCDN.file(uuid: str) -> bytes
 
-iCDN.data(uuid: str) -> DataModel
+iCDN.content(uuid: str) -> DataModel
 
 iCDN.search(
     begin?:  int,
@@ -91,14 +91,24 @@ iCDN.remove(
 
 #### Exceptions
 
-None specific to iCDN at this time.
+- dmmd.exceptions.DmmDException
+    - dmmd.exceptions.BadFile
+    - dmmd.exceptions.BadJSON
+    - dmmd.exceptions.GenericInvalid
+        - dmmd.exceptions.InvalidData
+        - dmmd.exceptions.InvalidName
+        - dmmd.exceptions.InvalidTags
+        - dmmd.exceptions.InvalidTime
+        - dmmd.exceptions.InvalidToken
+        - dmmd.exceptions.InvalidUUID
+    - dmmd.exceptions.LargeSource
+    - dmmd.exceptions.MissingAsset
+    - dmmd.exceptions.MissingContent
+    - dmmd.exceptions.UnauthorizedToken
+    - dmmd.exceptions.UnsupportedMime
 
 ## Exceptions
 
 - dmmd.exceptions.DmmDException
-    - dmmd.exceptions.BadRequest
-        - Fired when the server replies with a 400, also contains the response text.
-    - dmmd.exceptions.NotFound
-        - Fired when a 404 is received, also contains the endpoint URL.
     - dmmd.exceptions.ServerError
         - Fired when the server replies with an unknown status code.
