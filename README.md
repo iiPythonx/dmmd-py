@@ -71,7 +71,7 @@ iCDN.add(
     tags?:  list[str] = [],
     time?:  datetime  = datetime.now(),
     token?: str
-) -> bool[Success]
+) -> DataModel
 
 iCDN.update(
     uuid:   str,
@@ -81,12 +81,12 @@ iCDN.update(
     tags?:  list[str] = [],
     time?:  datetime  = datetime.now(),
     token?: str
-) -> bool[Success]
+) -> DataModel
 
 iCDN.remove(
     uuid:   str,
     token?: str
-) -> bool[Success]
+) -> DataModel
 ```
 
 #### Exceptions
