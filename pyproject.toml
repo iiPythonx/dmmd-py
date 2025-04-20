@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "dmmd/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["dmmd"]
+
+[project]
+name = "dmmd-py"
+dynamic = ["version"]
+description = "Python module for interacting with DmmD's APIs."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiohttp[speedups]>=3.11.17",
+    "pydantic>=2.11.3",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+# Including URLs although this is not being uploaded
+# to PyPI, at least not yet anyway.
+[project.urls]
+Homepage = "https://github.com/iiPythonx/dmmd-py"
+Issues = "https://github.com/iiPythonx/dmmd-py/issues"
