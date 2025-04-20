@@ -38,6 +38,9 @@ class iCDN:
         self.client = Client(base_url)
 
     # Endpoint handlers
+    async def content(self, uuid: str) -> bytes:
+        return await self.client.request(f"/content/{uuid}")
+
     async def data(self, uuid: str) -> DataModel:
         return DataModel(**await self.client.json(f"/data/{uuid}"))
 
@@ -120,6 +123,12 @@ class iCDN:
 
         else:
             return await process_update()
+
+    async def remove(self, uuid: str, token: typing.Optional[str] = None) -> bool:
+        response = await self.client.request("/remove", data = {
+            "json": json.dumps({"uuid": uuid} | ({"token": token} if token is not None else {}))
+        })
+        return response == b"OK"
 
     async def list(self, count: int = 25, page: int = 0) -> list[str]:
         return await self.client.json("/list", params = {"count": count, "page": page})
