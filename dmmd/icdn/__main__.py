@@ -48,7 +48,11 @@ def full_view(response: DataModel) -> None:
 @icdn.command()
 @asyncclick.argument("uuid")
 async def query(uuid: str) -> None:
-    full_view(await get_cdn().query(uuid))
+    try:
+        full_view(await get_cdn().query(uuid))
+
+    except DmmDException as e:
+        print(f"\033[2K\r\033[31mFailed to perform query:\n  > {e}")
 
 @icdn.command()
 @asyncclick.option("--begin", type = int, required = False, help = "All content must have an associated time after the specified timestamp.")
@@ -188,7 +192,7 @@ async def update(file: Path, uuid: str, token: typing.Optional[str] = None, time
 async def remove(uuid: str, token: typing.Optional[str] = None) -> None:
     try:
         await get_cdn().remove(uuid, token)
-        print(f"\033[32m✓ Removed \033[33{uuid}\033[32mwithout issues.")
+        print(f"\033[32m✓ Removed \033[33{uuid}\033[32m without issues.")
 
     except DmmDException as e:
         print(f"\033[2K\r\033[31mFailed to remove:\n  > {e}")
