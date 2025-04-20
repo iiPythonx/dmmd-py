@@ -14,7 +14,7 @@ uv add git@github.com:iiPythonx/dmmd-py
 
 ```py
 from dmmd.icdn import iCDN
-connection = iCDN("https://random.dmmdgm.dev")
+connection = iCDN()
 ```
 
 #### Supported endpoints
