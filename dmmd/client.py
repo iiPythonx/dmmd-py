@@ -1,14 +1,13 @@
 # Copyright (c) 2025 iiPython
 
 # Modules
-import json
 import typing
 import atexit
 import asyncio
 
 from aiohttp import ClientSession
 
-from dmmd.exceptions import BadRequest, NotFound, ServerError
+from dmmd.exceptions import ServerError, EXCEPTION_MAP
 
 # Singleton
 class Client:
@@ -31,25 +30,20 @@ class Client:
             self._client = ClientSession(self._base_url)
             atexit.register(cleanup)
 
-    async def request(self, endpoint: str, **kwargs) -> bytes:
+    async def request(self, endpoint: str, **kwargs) -> typing.Any:
         await self._ensure_client()
         async with self._client.request(
             "POST" if "data" in kwargs else "GET", endpoint,
             **kwargs
         ) as response:
-            match response.status:
-                case 200:
-                    return await response.read()
+            json = await response.json()
+            if response.status != 200:
+                if json["code"] in EXCEPTION_MAP:
+                    raise EXCEPTION_MAP[json["code"]](json["message"])
 
-                case 400:
-                    raise BadRequest(await response.text())
+                raise ServerError(
+                    "Received unknown error from server!" +
+                    f"HTTP {json['code']}: {json['message']}"
+                )
 
-                case 404:
-                    raise NotFound(endpoint)
-
-                case _ as code:
-                    raise ServerError(f"Unexpected response status received: {code}")
-
-    async def json(self, endpoint: str, **kwargs) -> typing.Any:
-        response = await self.request(endpoint, **kwargs)
-        return json.loads(response.decode())
+            return json

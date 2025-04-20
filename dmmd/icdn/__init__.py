@@ -38,11 +38,11 @@ class iCDN:
         self.client = Client(base_url)
 
     # Endpoint handlers
-    async def content(self, uuid: str) -> bytes:
-        return await self.client.request(f"/content/{uuid}")
+    async def file(self, uuid: str) -> bytes:
+        return await self.client.request(f"/file/{uuid}")
 
-    async def data(self, uuid: str) -> DataModel:
-        return DataModel(**await self.client.json(f"/data/{uuid}"))
+    async def content(self, uuid: str) -> DataModel:
+        return DataModel(**await self.client.request(f"/content/{uuid}"))
 
     async def search(
         self,
@@ -57,7 +57,7 @@ class iCDN:
         tags:  typing.Optional[list[str]] = None,
         uuid:  typing.Optional[str]       = None
     ) -> list[str]:
-        return await self.client.json("/search", params = {
+        return await self.client.request("/search", params = {
             key: value
             for key, value in {
                 "begin": begin, "end": end, "count": count, "loose": str(loose).lower(),
@@ -69,7 +69,7 @@ class iCDN:
     async def all(self, count: int = 25, page: int = 0) -> list[DataModel]:
         return [
             DataModel(**item) for item in
-            await self.client.json("/all", params = {"count": count, "page": page})
+            await self.client.request("/all", params = {"count": count, "page": page})
         ]
 
     async def add(
@@ -80,7 +80,7 @@ class iCDN:
         tags:  list[str]                 = [],
         time:  typing.Optional[datetime] = None,
         token: typing.Optional[str]      = None
-    ) -> bool:
+    ) -> DataModel:
         with file.open("rb") as handle:
             response = await self.client.request("/add", data = {
                 "file": handle,
@@ -91,7 +91,7 @@ class iCDN:
                     "time": round((time or datetime.now()).timestamp() * 1000),
                 } | ({"token": token} if token is not None else {}))
             })
-            return response == b"OK"
+            return DataModel(**response)
 
     async def update(
         self,
@@ -102,8 +102,8 @@ class iCDN:
         tags:  typing.Optional[list[str]]             = None,
         time:  typing.Optional[datetime]              = None,
         token: typing.Optional[str]                   = None
-    ) -> bool:
-        async def process_update(handle = None) -> bool:
+    ) -> DataModel:
+        async def process_update(handle = None) -> DataModel:
             response = await self.client.request("/update", data = {
                 "json": json.dumps({
                     key: value for key, value in {
@@ -115,7 +115,7 @@ class iCDN:
                     }.items() if value is not None
                 } | ({"token": token} if token is not None else {}))
             } | ({"file": handle} if handle else {}))
-            return response == b"OK"
+            return DataModel(**response)
 
         if file is not None:
             with file.open("rb") as handle:
@@ -124,11 +124,11 @@ class iCDN:
         else:
             return await process_update()
 
-    async def remove(self, uuid: str, token: typing.Optional[str] = None) -> bool:
+    async def remove(self, uuid: str, token: typing.Optional[str] = None) -> DataModel:
         response = await self.client.request("/remove", data = {
             "json": json.dumps({"uuid": uuid} | ({"token": token} if token is not None else {}))
         })
-        return response == b"OK"
+        return DataModel(**response)
 
     async def list(self, count: int = 25, page: int = 0) -> list[str]:
-        return await self.client.json("/list", params = {"count": count, "page": page})
+        return await self.client.request("/list", params = {"count": count, "page": page})
