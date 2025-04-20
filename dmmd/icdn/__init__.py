@@ -23,7 +23,9 @@ class SortType(Enum):
 
 class DataModel(BaseModel):
     data: dict
+    mime: str
     name: str
+    size: int
     tags: list[str]
     time: datetime
     uuid: str
@@ -41,8 +43,8 @@ class iCDN:
     async def file(self, uuid: str) -> bytes:
         return await self.client.request(f"/file/{uuid}")
 
-    async def content(self, uuid: str) -> DataModel:
-        return DataModel(**await self.client.request(f"/content/{uuid}"))
+    async def query(self, uuid: str) -> DataModel:
+        return DataModel(**await self.client.request(f"/query/{uuid}"))
 
     async def search(
         self,

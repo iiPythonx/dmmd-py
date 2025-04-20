@@ -39,7 +39,7 @@ type DataModel = {
 
 iCDN.file(uuid: str) -> bytes
 
-iCDN.content(uuid: str) -> DataModel
+iCDN.query(uuid: str) -> DataModel
 
 iCDN.search(
     begin?:  int,

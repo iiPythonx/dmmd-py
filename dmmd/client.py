@@ -42,8 +42,8 @@ class Client:
                     raise EXCEPTION_MAP[json["code"]](json["message"])
 
                 raise ServerError(
-                    "Received unknown error from server!" +
-                    f"HTTP {json['code']}: {json['message']}"
+                    "Received unknown error from server! " +
+                    f"{json['code']}: {json['message']}"
                 )
 
             return json

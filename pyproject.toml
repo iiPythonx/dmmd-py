@@ -16,6 +16,8 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "aiohttp[speedups]>=3.11.17",
+    "asyncclick>=8.1.8",
+    "humanize>=4.12.2",
     "pydantic>=2.11.3",
 ]
 classifiers = [
@@ -23,6 +25,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+
+[project.scripts]
+icdn = "dmmd.icdn.__main__:icdn"
 
 # Including URLs although this is not being uploaded
 # to PyPI, at least not yet anyway.
