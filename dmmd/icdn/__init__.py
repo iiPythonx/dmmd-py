@@ -20,6 +20,7 @@ class SortType(Enum):
     NAME = "name"
     TIME = "time"
     UUID = "uuid"
+    SIZE = "size"
 
 class DataModel(BaseModel):
     data: dict

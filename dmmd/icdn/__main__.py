@@ -62,7 +62,7 @@ async def query(uuid: str) -> None:
 @asyncclick.option("--loose", type = bool, is_flag = True, default = False, required = False, help = "If true, only require one filter to be true instead of all.")
 @asyncclick.option("--order", type = asyncclick.Choice(["asc", "dsc"], case_sensitive = False), default = "dsc", required = False, help = "Sort UUIDs by ascending or descending order.")
 @asyncclick.option("--page", type = int, required = False, help = "Page offset.")
-@asyncclick.option("--sort", type = asyncclick.Choice(["name", "time", "uuid"], case_sensitive = False), default = "time", required = False, help = "Sorting algorithm to use.")
+@asyncclick.option("--sort", type = asyncclick.Choice(["name", "time", "uuid", "size"], case_sensitive = False), default = "time", required = False, help = "Sorting algorithm to use.")
 @asyncclick.option("--tags", type = str, required = False, help = "All content must contain the specified tags, seperated by a comma.")
 @asyncclick.option("--uuid", type = str, required = False, help = "Filter by an exact UUID.")
 @asyncclick.argument("name", nargs = -1, required = False)
@@ -72,7 +72,7 @@ async def search(begin: int, end: int, count: int, loose: bool, order: str, page
         " ".join(name),
         {"ASC": SortOrder.ASCENDING, "DSC": SortOrder.DESCENDING}[order.upper()],
         page,
-        {"NAME": SortType.NAME, "TIME": SortType.TIME, "UUID": SortType.UUID}[sort.upper()],
+        {"NAME": SortType.NAME, "TIME": SortType.TIME, "UUID": SortType.UUID, "SIZE": SortType.SIZE}[sort.upper()],
         tags.split(",") if tags is not None else None,
         uuid
     ):
