@@ -24,7 +24,7 @@ connection = iCDN()
 
 ```sh
 icdn query <UUID>
-icdn search --begin --end --count --loose --order --page --sort --tags --uuid NAME
+icdn search --begin --end --minimum --maximum --count --loose --order --page --sort --tags --uuid NAME
 icdn all --count --page --full
 icdn list --count --page --save
 icdn add --file --token --time NAME
@@ -74,16 +74,18 @@ iCDN.file(uuid: str) -> bytes
 iCDN.query(uuid: str) -> DataModel
 
 iCDN.search(
-    begin?:  int,
-    end?:    int,
-    count?   int         = 25,
-    loose?:  bool        = False,
-    name?:   str,
-    order?:  SortOrder   = SortOrder.DESCENDING,
-    page?:   int         = 0,
-    sort?:   SortType    = SortType.TIME,
-    tags?:   list[str],
-    uuid?:   str
+    begin?:   int,
+    end?:     int,
+    minimum?: int,
+    maximum?: int
+    count?    int         = 25,
+    loose?:   bool        = False,
+    name?:    str,
+    order?:   SortOrder   = SortOrder.DESCENDING,
+    page?:    int         = 0,
+    sort?:    SortType    = SortType.TIME,
+    tags?:    list[str],
+    uuid?:    str
 ) -> list[str[UUID]]
 
 iCDN.all(

@@ -56,23 +56,25 @@ class iCDN:
 
     async def search(
         self,
-        begin: typing.Optional[int]       = None,
-        end:   typing.Optional[int]       = None,
-        count: int                        = 25,
-        loose: bool                       = False,
-        name:  typing.Optional[str]       = None,
-        order: SortOrder                  = SortOrder.DESCENDING,
-        page:  int                        = 0,
-        sort:  SortType                   = SortType.TIME,
-        tags:  typing.Optional[list[str]] = None,
-        uuid:  typing.Optional[str]       = None
+        begin:   typing.Optional[int]       = None,
+        end:     typing.Optional[int]       = None,
+        minimum: typing.Optional[int]       = None,
+        maximum: typing.Optional[int]       = None,
+        count:   int                        = 25,
+        loose:   bool                       = False,
+        name:    typing.Optional[str]       = None,
+        order:   SortOrder                  = SortOrder.DESCENDING,
+        page:    int                        = 0,
+        sort:    SortType                   = SortType.TIME,
+        tags:    typing.Optional[list[str]] = None,
+        uuid:    typing.Optional[str]       = None
     ) -> list[str]:
         return await self.client.request("/search", params = {
             key: value
             for key, value in {
-                "begin": begin, "end": end, "count": count, "loose": str(loose).lower(),
-                "name": name, "order": order.value, "page": page, "sort": sort.value,
-                "tags": ",".join(tags) if tags else None, "uuid": uuid
+                "begin": begin, "end": end, "minimum": minimum, "maximum": maximum,
+                "count": count, "loose": str(loose).lower(), "name": name, "order": order.value,
+                "page": page, "sort": sort.value, "tags": ",".join(tags) if tags else None, "uuid": uuid
             }.items() if value is not None
         })
 

@@ -58,6 +58,8 @@ async def query(uuid: str) -> None:
 @icdn.command()
 @asyncclick.option("--begin", type = int, required = False, help = "All content must have an associated time after the specified timestamp.")
 @asyncclick.option("--end", type = int, required = False, help = "All content must have an associated time before the specified timestamp.")
+@asyncclick.option("--minimum", type = int, required = False, help = "Content must have have a size in bytes greater then or equal to this.")
+@asyncclick.option("--maximum", type = int, required = False, help = "Content must have have a size in bytes less then or equal to this.")
 @asyncclick.option("--count", type = int, required = False, help = "The number of UUIDs returned per page.")
 @asyncclick.option("--loose", type = bool, is_flag = True, default = False, required = False, help = "If true, only require one filter to be true instead of all.")
 @asyncclick.option("--order", type = asyncclick.Choice(["asc", "dsc"], case_sensitive = False), default = "dsc", required = False, help = "Sort UUIDs by ascending or descending order.")
@@ -66,9 +68,9 @@ async def query(uuid: str) -> None:
 @asyncclick.option("--tags", type = str, required = False, help = "All content must contain the specified tags, seperated by a comma.")
 @asyncclick.option("--uuid", type = str, required = False, help = "Filter by an exact UUID.")
 @asyncclick.argument("name", nargs = -1, required = False)
-async def search(begin: int, end: int, count: int, loose: bool, order: str, page: int, sort: str, tags: str, uuid: str, name: tuple[str]) -> None:
+async def search(begin: int, end: int, minimum: int, maximum: int, count: int, loose: bool, order: str, page: int, sort: str, tags: str, uuid: str, name: tuple[str]) -> None:
     for uuid in await get_cdn().search(
-        begin, end, count, loose,
+        begin, end, minimum, maximum, count, loose,
         " ".join(name),
         {"ASC": SortOrder.ASCENDING, "DSC": SortOrder.DESCENDING}[order.upper()],
         page,
