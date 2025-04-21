@@ -10,6 +10,7 @@ uv add git@github.com:iiPythonx/dmmd-py
 
 ## Modules
 
+
 ### iCDN
 
 ```py
@@ -17,7 +18,9 @@ from dmmd.icdn import iCDN
 connection = iCDN()
 ```
 
-#### Supported endpoints
+<details>
+
+<summary>Supported Endpoints</summary>
 
 ```py
 class SortOrder(Enum):
@@ -31,10 +34,20 @@ class SortType(Enum):
 
 type DataModel = {
     data: dict
+    mime: str
     name: str
+    size: int
     tags: list[str]
     time: datetime
     uuid: str
+}
+
+type StoreModel = {
+    file_limit:  int
+    store_limit: int
+    length:      int
+    protected:   bool
+    size:        int
 }
 
 iCDN.file(uuid: str) -> bytes
@@ -87,9 +100,15 @@ iCDN.remove(
     uuid:   str,
     token?: str
 ) -> DataModel
+
+iCDN.store() -> StoreModel
 ```
 
-#### Exceptions
+</details>
+
+<details>
+
+<summary>Exceptions</summary>
 
 - dmmd.exceptions.DmmDException
     - dmmd.exceptions.BadFile
@@ -106,6 +125,8 @@ iCDN.remove(
     - dmmd.exceptions.MissingContent
     - dmmd.exceptions.UnauthorizedToken
     - dmmd.exceptions.UnsupportedMime
+
+</details>
 
 ## Exceptions
 
