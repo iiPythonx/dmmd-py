@@ -113,13 +113,13 @@ async def list(count: int, page: int, save: typing.Optional[Path] = None) -> Non
         print(f"\nSaved to \033[33m{save}\033[0m.")
 
 async def upload(
-    file: Path,
+    file: typing.Optional[Path] = None,
     token: typing.Optional[str] = None,
     time: typing.Optional[int] = None,
     name: typing.Optional[tuple[str]] = None,
     uuid: typing.Optional[str] = None
 ) -> None:
-    if not file.is_file():
+    if file and not file.is_file():
         return print("\033[31m--file must be a valid file that \033[4mactually exists\033[24m.")
 
     processed_name = " ".join(name) if name else input("\033[36mName: \033[0m")
@@ -153,13 +153,12 @@ async def upload(
 
         # Create kwargs
         kwargs = {
-            "file": file,
             "name": processed_name,
             "data": data,
             "tags": tags,
             "time": datetime.fromtimestamp(time / 1000) if time is not None else datetime.now(),
             "token": token
-        } | ({"uuid": uuid} if uuid is not None else {})
+        } | ({"uuid": uuid} if uuid is not None else {}) | ({"file": file} if file is not None else {})
         response = await getattr(get_cdn(), "add" if uuid is None else "update")(**kwargs)
 
         print(
@@ -179,12 +178,18 @@ async def add(file: Path, token: typing.Optional[str] = None, time: typing.Optio
     await upload(file, token, time, name)
 
 @icdn.command()
-@asyncclick.option("--file", type = asyncclick.Path(path_type = Path, exists = True, dir_okay = False), required = True, help = "File to upload to the iCDN.")
+@asyncclick.option("--file", type = asyncclick.Path(path_type = Path, exists = True, dir_okay = False), required = False, help = "File to upload to the iCDN.")
 @asyncclick.option("--token", type = str, required = False, help = "Token to use for uploading.")
 @asyncclick.option("--time", type = int, required = False, help = "Millisecond based timestamp to use instead of the current time.")
 @asyncclick.option("--uuid", type = str, required = True, help = "UUID to update.")
 @asyncclick.argument("name", nargs = -1, required = False)
-async def update(file: Path, uuid: str, token: typing.Optional[str] = None, time: typing.Optional[int] = None, name: typing.Optional[tuple[str]] = None) -> None:
+async def update(
+    uuid: str,
+    file: typing.Optional[Path] = None,
+    token: typing.Optional[str] = None,
+    time: typing.Optional[int] = None,
+    name: typing.Optional[tuple[str]] = None
+) -> None:
     await upload(file, token, time, name, uuid)
 
 @icdn.command()
