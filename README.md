@@ -20,6 +20,25 @@ connection = iCDN()
 
 <details>
 
+<summary>CLI</summary>
+
+```sh
+icdn query <UUID>
+icdn search --begin --end --count [--loose] --order --page --sort --tags --uuid [NAME]
+icdn all --count --page [--full]
+icdn list --count --page [--save]
+icdn add <--file> --token --time [NAME]
+icdn update <--file> --token --time <--uuid> [NAME]
+icdn remove --token <UUID>
+icdn store
+```
+
+For more information, run `icdn --help`.
+
+</details>
+
+<details>
+
 <summary>Supported Endpoints</summary>
 
 ```py
