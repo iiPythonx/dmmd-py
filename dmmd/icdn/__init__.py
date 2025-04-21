@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 from datetime import datetime
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from dmmd.client import Client
 
@@ -33,6 +33,13 @@ class DataModel(BaseModel):
     @field_validator("time", mode = "before")
     def convert_timestamp(cls, value: int) -> datetime:
         return datetime.fromtimestamp(value / 1000)
+
+class StoreModel(BaseModel):
+    file_limit:  int = Field(alias = "fileLimit")
+    store_limit: int = Field(alias = "storeLimit")
+    length:      int
+    protected:   bool
+    size:        int
 
 # Main class
 class iCDN:
@@ -134,3 +141,6 @@ class iCDN:
 
     async def list(self, count: int = 25, page: int = 0) -> list[str]:
         return await self.client.request("/list", params = {"count": count, "page": page})
+
+    async def store(self) -> StoreModel:
+        return StoreModel(**await self.client.request("/store"))

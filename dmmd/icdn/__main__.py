@@ -9,6 +9,7 @@ from datetime import datetime
 
 import asyncclick
 from humanize import precisedelta
+import humanize
 
 from dmmd.exceptions import DmmDException
 from dmmd.icdn import DataModel, SortOrder, SortType, iCDN
@@ -196,3 +197,9 @@ async def remove(uuid: str, token: typing.Optional[str] = None) -> None:
 
     except DmmDException as e:
         print(f"\033[2K\r\033[31mFailed to remove:\n  > {e}")
+
+@icdn.command()
+async def store() -> None:
+    store = await get_cdn().store()
+    print(f"\033[90mCurrent usage: \033[36m{humanize.naturalsize(store.size)} \033[90m/ \033[36m{humanize.naturalsize(store.store_limit)} \033[90m(\033[36m{round((store.size / store.store_limit) * 100, 1)}%\033[90m)")
+    print(f"\033[90mFile size limit: \033[36m{humanize.naturalsize(store.file_limit)}\033[90m, Current files: \033[36m{store.length}\033[90m, Protected: {'\033[31myes' if store.protected else '\033[32mno'}")
