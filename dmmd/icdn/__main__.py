@@ -3,6 +3,7 @@
 # Modules
 import os
 import typing
+import mimetypes
 from time import time as take_time
 from pathlib import Path
 from datetime import datetime
@@ -46,6 +47,23 @@ def full_view(response: DataModel) -> None:
             print(f"    \033[34m{k}\033[90m: \033[32m{v}")
 
 # Commands
+@icdn.command()
+@asyncclick.argument("uuid")
+@asyncclick.argument("file", type = asyncclick.Path(dir_okay = False, path_type = Path), required = False)
+async def download(uuid: str, file: typing.Optional[Path] = None) -> None:
+    try:
+        cdn = get_cdn()
+
+        # Calculate output file
+        data = await cdn.query(uuid)
+        path = file or Path(f"{data.name}{mimetypes.guess_extension(data.mime)}")
+
+        path.write_bytes(await cdn.file(uuid))
+        print(f"\033[32m✓ Download complete as \033[34m{path.name}\033[32m.\033[0m")
+
+    except DmmDException as e:
+        print(f"\033[2K\r\033[31mFailed to download:\n  > {e}")
+
 @icdn.command()
 @asyncclick.argument("uuid")
 async def query(uuid: str) -> None:
