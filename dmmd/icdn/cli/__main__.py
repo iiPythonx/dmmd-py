@@ -9,19 +9,18 @@ from pathlib import Path
 from datetime import datetime
 
 import asyncclick
-from humanize import precisedelta
-import humanize
+from humanize import precisedelta, naturalsize
 
 from dmmd.exceptions import DmmDException
 from dmmd.icdn import DataModel, SortOrder, SortType, iCDN
+from dmmd.icdn.cli.parameters import attach, search_params, generic_add
 
 # Initialization
 def get_cdn() -> iCDN:
     return iCDN(os.environ.get("ICDN_URL", "https://dmmdgm.dev"))
 
 @asyncclick.group(epilog = "Copyright (c) 2025 iiPython")
-@asyncclick.option("--url")
-def icdn(url: str) -> None:
+def icdn() -> None:
     """A Python-based CLI for DmmD's iCDN.
 
     \b
@@ -74,29 +73,17 @@ async def query(uuid: str) -> None:
         print(f"\033[2K\r\033[31mFailed to perform query:\n  > {e}")
 
 @icdn.command()
-@asyncclick.option("--begin", type = int, required = False, help = "All content must have an associated time after the specified timestamp.")
-@asyncclick.option("--end", type = int, required = False, help = "All content must have an associated time before the specified timestamp.")
-@asyncclick.option("--minimum", type = int, required = False, help = "Content must have have a size in bytes greater then or equal to this.")
-@asyncclick.option("--maximum", type = int, required = False, help = "Content must have have a size in bytes less then or equal to this.")
-@asyncclick.option("--count", type = int, required = False, help = "The number of UUIDs returned per page.")
-@asyncclick.option("--loose", type = bool, is_flag = True, default = False, required = False, help = "If true, only require one filter to be true instead of all.")
-@asyncclick.option("--order", type = asyncclick.Choice(["asc", "dsc"], case_sensitive = False), default = "dsc", required = False, help = "Sort UUIDs by ascending or descending order.")
-@asyncclick.option("--page", type = int, required = False, help = "Page offset.")
-@asyncclick.option("--sort", type = asyncclick.Choice(["name", "time", "uuid", "size"], case_sensitive = False), default = "time", required = False, help = "Sorting algorithm to use.")
-@asyncclick.option("--tags", type = str, required = False, help = "All content must contain the specified tags, seperated by a comma.")
-@asyncclick.option("--uuid", type = str, required = False, help = "Filter by an exact UUID.")
 @asyncclick.argument("name", nargs = -1, required = False)
-async def search(begin: int, end: int, minimum: int, maximum: int, count: int, loose: bool, order: str, page: int, sort: str, tags: str, uuid: str, name: tuple[str]) -> None:
-    for uuid in await get_cdn().search(
-        begin, end, minimum, maximum, count, loose,
-        " ".join(name),
-        {"ASC": SortOrder.ASCENDING, "DSC": SortOrder.DESCENDING}[order.upper()],
-        page,
-        {"NAME": SortType.NAME, "TIME": SortType.TIME, "UUID": SortType.UUID, "SIZE": SortType.SIZE}[sort.upper()],
-        tags.split(",") if tags is not None else None,
-        uuid
-    ):
-        print(f"\033[32m{uuid}\033[0m")
+async def search(name: tuple[str], **kwargs) -> None:
+    for uuid in await get_cdn().search(**kwargs | {
+        "name": " ".join(name),
+        "order": {"ASC": SortOrder.ASCENDING, "DSC": SortOrder.DESCENDING}[kwargs["order"].upper()],
+        "sort": {"NAME": SortType.NAME, "TIME": SortType.TIME, "UUID": SortType.UUID, "SIZE": SortType.SIZE}[kwargs["sort"].upper()],
+        "tags": kwargs["tags"].split(",") if kwargs["tags"] is not None else None,
+    }):
+        print(f"* \033[32m{uuid}\033[0m")
+
+attach(search_params, search)
 
 @icdn.command()
 @asyncclick.option("--count", type = int, required = False, default = 25, help = "The number of UUIDs returned per page.")
@@ -191,16 +178,14 @@ async def upload(
 
 @icdn.command()
 @asyncclick.option("--file", type = asyncclick.Path(path_type = Path, exists = True, dir_okay = False), required = True, help = "File to upload to the iCDN.")
-@asyncclick.option("--token", type = str, required = False, help = "Token to use for uploading.")
-@asyncclick.option("--time", type = int, required = False, help = "Millisecond based timestamp to use instead of the current time.")
 @asyncclick.argument("name", nargs = -1, required = False)
 async def add(file: Path, token: typing.Optional[str] = None, time: typing.Optional[int] = None, name: typing.Optional[tuple[str]] = None) -> None:
     await upload(file, token, time, name)
 
+attach(generic_add, add)
+
 @icdn.command()
 @asyncclick.option("--file", type = asyncclick.Path(path_type = Path, exists = True, dir_okay = False), required = False, help = "File to upload to the iCDN.")
-@asyncclick.option("--token", type = str, required = False, help = "Token to use for uploading.")
-@asyncclick.option("--time", type = int, required = False, help = "Millisecond based timestamp to use instead of the current time.")
 @asyncclick.option("--uuid", type = str, required = True, help = "UUID to update.")
 @asyncclick.argument("name", nargs = -1, required = False)
 async def update(
@@ -211,6 +196,8 @@ async def update(
     name: typing.Optional[tuple[str]] = None
 ) -> None:
     await upload(file, token, time, name, uuid)
+
+attach(generic_add, update)
 
 @icdn.command()
 @asyncclick.option("--token", type = str, required = False, help = "Token to use for uploading.")
@@ -226,5 +213,5 @@ async def remove(uuid: str, token: typing.Optional[str] = None) -> None:
 @icdn.command()
 async def store() -> None:
     store = await get_cdn().store()
-    print(f"\033[90mCurrent usage: \033[36m{humanize.naturalsize(store.size)} \033[90m/ \033[36m{humanize.naturalsize(store.store_limit)} \033[90m(\033[36m{round((store.size / store.store_limit) * 100, 1)}%\033[90m)")
-    print(f"\033[90mFile size limit: \033[36m{humanize.naturalsize(store.file_limit)}\033[90m, Current files: \033[36m{store.length}\033[90m, Protected: {'\033[31myes' if store.protected else '\033[32mno'}")
+    print(f"\033[90mCurrent usage: \033[36m{naturalsize(store.size)} \033[90m/ \033[36m{naturalsize(store.store_limit)} \033[90m(\033[36m{round((store.size / store.store_limit) * 100, 1)}%\033[90m)")
+    print(f"\033[90mFile size limit: \033[36m{naturalsize(store.file_limit)}\033[90m, Current files: \033[36m{store.length}\033[90m, Protected: {'\033[31myes' if store.protected else '\033[32mno'}")

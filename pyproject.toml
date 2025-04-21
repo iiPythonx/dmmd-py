@@ -27,7 +27,7 @@ classifiers = [
 ]
 
 [project.scripts]
-icdn = "dmmd.icdn.__main__:icdn"
+icdn = "dmmd.icdn.cli.__main__:icdn"
 
 # Including URLs although this is not being uploaded
 # to PyPI, at least not yet anyway.
