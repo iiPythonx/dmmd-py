@@ -6,7 +6,6 @@ import typing
 from enum import Enum
 from pathlib import Path
 from datetime import datetime
-from dataclasses import dataclass
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -36,11 +35,6 @@ class DataModel(BaseModel):
     def convert_timestamp(cls, value: int) -> datetime:
         return datetime.fromtimestamp(value / 1000)
 
-@dataclass
-class MultiQueryResponse:
-    uuids:     list[str]
-    summaries: list[DataModel]
-
 class StoreModel(BaseModel):
     file_limit:   int = Field(alias = "fileLimit")
     store_limit:  int = Field(alias = "storeLimit")
@@ -48,10 +42,37 @@ class StoreModel(BaseModel):
     store_size:   int = Field(alias = "storeSize")
     protected:    bool
 
+class SearchParams(typing.TypedDict, total = False):
+    begin:     int
+    end:       int
+    minimum:   int
+    maximum:   int
+    count:     int
+    loose:     bool
+    name:      str
+    order:     SortOrder
+    page:      int
+    sort:      SortType
+    tags:      list[str]
+    uuid:      str
+    mime:      str
+    extension: str
+
 # Main class
 class iCDN:
     def __init__(self, base_url: str = "https://dmmdgm.dev") -> None:
         self.client = Client(base_url)
+
+    @staticmethod
+    def _sanitize(params: SearchParams) -> dict:
+        return {k: v for k, v in (params | {
+            "count": params.get("count", 25),
+            "loose": str(params.get("loose", False)).lower(),
+            "order": params.get("order", SortOrder.DESCENDING).value,
+            "tags":  ",".join(params.get("tags", [])) if params.get("tags") else None,
+            "sort": params.get("sort", SortType.TIME).value,
+            "page": params.get("page", 0)
+        }).items() if v is not None}
 
     # Endpoint handlers
     async def file(self, uuid: str) -> bytes:
@@ -61,43 +82,31 @@ class iCDN:
     async def query(self, uuid: str) -> DataModel:
         return DataModel(**await self.client.request(f"/query/{uuid}"))
 
-    async def search(
-        self,
-        begin:     typing.Optional[int]       = None,
-        end:       typing.Optional[int]       = None,
-        minimum:   typing.Optional[int]       = None,
-        maximum:   typing.Optional[int]       = None,
-        count:     int                        = 25,
-        loose:     bool                       = False,
-        name:      typing.Optional[str]       = None,
-        order:     SortOrder                  = SortOrder.DESCENDING,
-        page:      int                        = 0,
-        sort:      SortType                   = SortType.TIME,
-        tags:      typing.Optional[list[str]] = None,
-        uuid:      typing.Optional[str]       = None,
-        mime:      typing.Optional[str]       = None,
-        extension: typing.Optional[str]       = None,
-        query:     bool                       = False
-    ) -> MultiQueryResponse:
-        response = await self.client.request("/search", params = {
-            key: value
-            for key, value in {
-                "begin": begin, "end": end, "minimum": minimum, "maximum": maximum,
-                "count": count, "loose": str(loose).lower(), "name": name, "order": order.value,
-                "page": page, "sort": sort.value, "tags": ",".join(tags) if tags else None,
-                "uuid": uuid,  "mime": mime, "extension": extension, "query": str(query).lower(),
-            }.items() if value is not None
-        })
-        return MultiQueryResponse(
-            [item["uuid"] for item in response] if query is True else response,
-            [DataModel(**item) for item in response] if query is True else []
-        )
+    async def search(self, params: SearchParams) -> list[str]:
+        return await self.client.request("/search", params = self._sanitize(params) | {"query": "false"})
 
-    async def all(self, count: int = 25, page: int = 0) -> list[DataModel]:
-        return [
-            DataModel(**item) for item in
-            await self.client.request("/all", params = {"count": count, "page": page})
-        ]
+    async def search_query(self, params: SearchParams) -> list[DataModel]:
+        return [DataModel(**item) for item in await self.client.request("/search", params = self._sanitize(params) | {"query": "true"})]
+
+    async def add(
+        self,
+        file:  Path,
+        name:  str,
+        data:  dict[str, typing.Any]     = {},
+        tags:  list[str]                 = [],
+        time:  typing.Optional[datetime] = None,
+        token: typing.Optional[str]      = None
+     ) -> DataModel:
+        with file.open("rb") as handle:
+            return DataModel(**await self.client.request("/add", data = {
+                "file": handle,
+                "json": json.dumps({
+                    "data": data,
+                    "name": name,
+                    "tags": tags,
+                    "time": round((time or datetime.now()).timestamp() * 1000)
+                } | ({"token": token} if token is not None else {}))
+            }))
 
     async def update(
         self,
@@ -110,7 +119,7 @@ class iCDN:
         token: typing.Optional[str]                   = None
     ) -> DataModel:
         async def process_update(handle = None) -> DataModel:
-            response = await self.client.request("/update", data = {
+            return DataModel(**await self.client.request("/update", data = {
                 "json": json.dumps({
                     key: value for key, value in {
                         "uuid": uuid,
@@ -120,8 +129,7 @@ class iCDN:
                         "time": round(time.timestamp() * 1000) if time else None
                     }.items() if value is not None
                 } | ({"token": token} if token is not None else {}))
-            } | ({"file": handle} if handle else {}))
-            return DataModel(**response)
+            } | ({"file": handle} if handle else {})))
 
         if file is not None:
             with file.open("rb") as handle:
@@ -131,18 +139,16 @@ class iCDN:
             return await process_update()
 
     async def remove(self, uuid: str, token: typing.Optional[str] = None) -> DataModel:
-        response = await self.client.request("/remove", data = {
+        return DataModel(**await self.client.request("/remove", data = {
             "json": json.dumps({"uuid": uuid} | ({"token": token} if token is not None else {}))
-        })
-        return DataModel(**response)
+        }))
 
     # Handle listing
-    async def list(self, count: int = 25, page: int = 0, query: bool = False) -> MultiQueryResponse:
-        response = await self.client.request("/list", params = {"count": count, "page": page, "query": str(query).lower()})
-        return MultiQueryResponse(
-            [item["uuid"] for item in response] if query is True else response,
-            [DataModel(**item) for item in response] if query is True else []
-        )
+    async def list_query(self, count: int = 25, page: int = 0) -> list[DataModel]:
+        return [DataModel(**item) for item in await self.client.request("/list", params = {"count": count, "page": page, "query": "true"})]
+
+    async def list(self, count: int = 25, page: int = 0) -> list[str]:
+        return await self.client.request("/list", params = {"count": count, "page": page, "query": "false"})
 
     async def details(self) -> StoreModel:
         return StoreModel(**await self.client.request("/details"))

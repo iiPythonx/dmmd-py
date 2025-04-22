@@ -24,12 +24,12 @@ connection = iCDN()
 
 ```sh
 icdn query <UUID>
-icdn search --begin --end --minimum --maximum --count --loose --order --page --sort --tags --uuid NAME
-icdn list --count --page --save
+icdn search --begin --end --minimum --maximum --count --loose --order --page --sort --tags --uuid --query NAME
+icdn list --count --page --query
 icdn add --file --token --time NAME
 icdn update --file --token --time --uuid NAME
 icdn remove --token <UUID>
-icdn store
+icdn details
 ```
 
 Nearly everything is optional, for more information, run `icdn --help` or check [DmmD's detailed API docs](https://github.com/DmmDGM/dmmd-icdn).
@@ -68,16 +68,11 @@ type StoreModel = {
     size:        int
 }
 
-type MultiQueryResponse = {
-    uuids:     list[str]
-    summaries: list[DataModel]
-}
-
 iCDN.file(uuid: str) -> bytes
 
 iCDN.query(uuid: str) -> DataModel
 
-iCDN.search(
+iCDN.search({
     begin?:   int,
     end?:     int,
     minimum?: int,
@@ -89,15 +84,17 @@ iCDN.search(
     page?:    int         = 0,
     sort?:    SortType    = SortType.TIME,
     tags?:    list[str],
-    uuid?:    str,
-    query?:   bool        = False
-) -> MultiQueryResponse
+    uuid?:    str
+}) -> list[str]
+
+iCDN.search_query({...}) -> list[DataModel]
 
 iCDN.list(
     count?: int  = 25
-    page?:  int  = 0,
-    query?: bool = False
-) -> MultiQueryResponse
+    page?:  int  = 0
+) -> list[str]
+
+iCDN.list_query(...) -> list[DataModel]
 
 iCDN.add(
     file:   Path,

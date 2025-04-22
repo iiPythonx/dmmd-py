@@ -75,17 +75,17 @@ async def query(uuid: str) -> None:
 @icdn.command()
 @asyncclick.argument("name", nargs = -1, required = False)
 async def search(name: tuple[str], **kwargs) -> None:
-    response = await get_cdn().search(**kwargs | {
-        "name": " ".join(name),
+    response = await getattr(get_cdn(), "search_query" if kwargs.get("query") else "search")(kwargs | {
+        "name": " ".join(name) if name else None,
         "order": {"ASC": SortOrder.ASCENDING, "DSC": SortOrder.DESCENDING}[kwargs["order"].upper()],
         "sort": {"NAME": SortType.NAME, "TIME": SortType.TIME, "UUID": SortType.UUID, "SIZE": SortType.SIZE}[kwargs["sort"].upper()],
         "tags": kwargs["tags"].split(",") if kwargs["tags"] is not None else None
-    })
+    })  # type: ignore
     if kwargs.get("query"):
-        [print(f"* \033[32m{uuid}\033[0m") for uuid in response.uuids]
+        [print(f"* \033[32m{uuid}\033[0m") for uuid in response]
 
     else:
-        [full_view(summary) for summary in response.summaries]
+        [full_view(summary) for summary in response]
 
 attach(search_params, search)
 
@@ -94,16 +94,16 @@ attach(search_params, search)
 @asyncclick.option("--page", type = int, required = False, default = 1, help = "Page offset.")
 @asyncclick.option("--query", type = bool, is_flag = True, required = False, default = False, help = "Show entire summaries instead of just UUIDs.")
 async def list(count: int, page: int, query: bool) -> None:
-    response = await get_cdn().list(count, page - 1, query)
-    if not response.uuids:
+    response = await getattr(get_cdn(), "list_query" if query else "list")(count, page - 1)
+    if not response:
         return print("\033[31mNo items were returned.\033[0m")
 
-    print(f"Showing {len(response.uuids)} items from page {page}:")
+    print(f"Showing {len(response)} items from page {page}:")
     if not query:
-        print("\n".join(f"  * \033[32m{uuid}\033[0m" for uuid in response.uuids))
+        print("\n".join(f"  * \033[32m{uuid}\033[0m" for uuid in response))
 
     else:
-        [full_view(summary) for summary in response.summaries]
+        [full_view(summary) for summary in response]
 
 async def upload(
     file: typing.Optional[Path] = None,
@@ -156,7 +156,7 @@ async def upload(
 
         print(
             f"\r\033[32m✓ Upload complete \033[90min \033[36m{round(take_time() - start_time, 1)}s\033[90m. " +
-            f"{'New ' if uuid is None else ''}UUID: \033[33m{response.uuid}\033[90m."
+            f"{'New ' if uuid is None else ''}UUID: \033[33m{response.uuids[0]}\033[90m."
         )
 
     except DmmDException as e:
