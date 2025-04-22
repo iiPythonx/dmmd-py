@@ -61,18 +61,44 @@ type DataModel = {
 }
 
 type StoreModel = {
-    file_limit:  int
-    store_limit: int
-    length:      int
-    protected:   bool
-    size:        int
+    file_limit:   int
+    store_limit:  int
+    store_length: int
+    store_size:   int
+    protected:    bool
 }
 
-iCDN.file(uuid: str) -> bytes
+async iCDN.file(uuid: str) -> bytes
 
-iCDN.query(uuid: str) -> DataModel
+async iCDN.query(uuid: str) -> DataModel
 
-iCDN.search({
+async iCDN.add(
+    file:   Path,
+    name:   str,
+    data?:  dict      = {},
+    tags?:  list[str] = [],
+    time?:  datetime  = datetime.now(),
+    token?: str
+) -> DataModel
+
+async iCDN.update(
+    uuid:   str,
+    file?:  Path,
+    name?:  str,
+    data?:  dict      = {},
+    tags?:  list[str] = [],
+    time?:  datetime  = datetime.now(),
+    token?: str
+) -> DataModel
+
+async iCDN.remove(
+    uuid:   str,
+    token?: str
+) -> DataModel
+
+async iCDN.store() -> StoreModel
+
+iCDN.search(
     begin?:   int,
     end?:     int,
     minimum?: int,
@@ -85,42 +111,23 @@ iCDN.search({
     sort?:    SortType    = SortType.TIME,
     tags?:    list[str],
     uuid?:    str
-}) -> list[str]
-
-iCDN.search_query({...}) -> list[DataModel]
+} -> BuiltCallable
 
 iCDN.list(
     count?: int  = 25
     page?:  int  = 0
-) -> list[str]
+) -> BuiltCallable
 
-iCDN.list_query(...) -> list[DataModel]
+async BuiltCallable.fetch() -> list[UUID]
+async BuiltCallable.query() -> list[DataModel]
+```
 
-iCDN.add(
-    file:   Path,
-    name:   str,
-    data?:  dict      = {},
-    tags?:  list[str] = [],
-    time?:  datetime  = datetime.now(),
-    token?: str
-) -> DataModel
+All endpoints that support querying must be called first with your arguments, and then awaited with any additional options. An example of this is as follows:
 
-iCDN.update(
-    uuid:   str,
-    file?:  Path,
-    name?:  str,
-    data?:  dict      = {},
-    tags?:  list[str] = [],
-    time?:  datetime  = datetime.now(),
-    token?: str
-) -> DataModel
-
-iCDN.remove(
-    uuid:   str,
-    token?: str
-) -> DataModel
-
-iCDN.store() -> StoreModel
+```py
+endpoint = iCDN.search("bocchi the rock")
+await endpoint.query()  # Returns a list of BaseModels
+await endpoint.fetch()  # Returns a list of UUIDs
 ```
 
 </details>
