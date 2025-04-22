@@ -88,24 +88,6 @@ attach(search_params, search)
 @icdn.command()
 @asyncclick.option("--count", type = int, required = False, default = 25, help = "The number of UUIDs returned per page.")
 @asyncclick.option("--page", type = int, required = False, default = 1, help = "Page offset.")
-@asyncclick.option("--full", type = bool, is_flag = True, required = False, default = False, help = "Show all packets in the full view.")
-async def all(count: int, page: int, full: bool) -> None:
-    response = await get_cdn().all(count, page - 1)
-    if not response:
-        return print("\033[31mNo packets were returned.\033[0m")
-
-    print(f"Showing {len(response)} entries from page {page}:")
-    for packet in response:
-        if full:
-            full_view(packet)
-            print()
-
-        else:
-            print(f"  * \033[32m{packet.name} ({packet.uuid})\033[0m")
-
-@icdn.command()
-@asyncclick.option("--count", type = int, required = False, default = 25, help = "The number of UUIDs returned per page.")
-@asyncclick.option("--page", type = int, required = False, default = 1, help = "Page offset.")
 @asyncclick.option("--save", type = asyncclick.Path(path_type = Path), required = False, help = "File to save UUIDs to.")
 async def list(count: int, page: int, save: typing.Optional[Path] = None) -> None:
     uuids = await get_cdn().list(count, page - 1)

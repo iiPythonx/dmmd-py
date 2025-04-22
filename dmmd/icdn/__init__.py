@@ -88,27 +88,6 @@ class iCDN:
             await self.client.request("/all", params = {"count": count, "page": page})
         ]
 
-    async def add(
-        self,
-        file:  Path,
-        name:  str,
-        data:  dict[str, typing.Any]     = {},
-        tags:  list[str]                 = [],
-        time:  typing.Optional[datetime] = None,
-        token: typing.Optional[str]      = None
-    ) -> DataModel:
-        with file.open("rb") as handle:
-            response = await self.client.request("/add", data = {
-                "file": handle,
-                "json": json.dumps({
-                    "data": data,
-                    "name": name,
-                    "tags": tags,
-                    "time": round((time or datetime.now()).timestamp() * 1000),
-                } | ({"token": token} if token is not None else {}))
-            })
-            return DataModel(**response)
-
     async def update(
         self,
         uuid:  str,

@@ -25,7 +25,6 @@ connection = iCDN()
 ```sh
 icdn query <UUID>
 icdn search --begin --end --minimum --maximum --count --loose --order --page --sort --tags --uuid NAME
-icdn all --count --page --full
 icdn list --count --page --save
 icdn add --file --token --time NAME
 icdn update --file --token --time --uuid NAME
@@ -87,11 +86,6 @@ iCDN.search(
     tags?:    list[str],
     uuid?:    str
 ) -> list[str[UUID]]
-
-iCDN.all(
-    count?: int = 25
-    page?:  int = 0
-) -> list[DataModel]
 
 iCDN.list(
     count?: int = 25
