@@ -36,11 +36,11 @@ class DataModel(BaseModel):
         return datetime.fromtimestamp(value / 1000)
 
 class StoreModel(BaseModel):
-    file_limit:  int = Field(alias = "fileLimit")
-    store_limit: int = Field(alias = "storeLimit")
-    length:      int
-    protected:   bool
-    size:        int
+    file_limit:   int = Field(alias = "fileLimit")
+    store_limit:  int = Field(alias = "storeLimit")
+    store_length: int = Field(alias = "storeLength")
+    store_size:   int = Field(alias = "storeSize")
+    protected:    bool
 
 # Main class
 class iCDN:
@@ -128,5 +128,5 @@ class iCDN:
     async def list(self, count: int = 25, page: int = 0) -> list[str]:
         return await self.client.request("/list", params = {"count": count, "page": page})
 
-    async def store(self) -> StoreModel:
-        return StoreModel(**await self.client.request("/store"))
+    async def details(self) -> StoreModel:
+        return StoreModel(**await self.client.request("/details"))

@@ -193,7 +193,7 @@ async def remove(uuid: str, token: typing.Optional[str] = None) -> None:
         print(f"\033[2K\r\033[31mFailed to remove:\n  > {e}")
 
 @icdn.command()
-async def store() -> None:
-    store = await get_cdn().store()
-    print(f"\033[90mCurrent usage: \033[36m{naturalsize(store.size)} \033[90m/ \033[36m{naturalsize(store.store_limit)} \033[90m(\033[36m{round((store.size / store.store_limit) * 100, 1)}%\033[90m)")
-    print(f"\033[90mFile size limit: \033[36m{naturalsize(store.file_limit)}\033[90m, Current files: \033[36m{store.length}\033[90m, Protected: {'\033[31myes' if store.protected else '\033[32mno'}")
+async def details() -> None:
+    store = await get_cdn().details()
+    print(f"\033[90mCurrent usage: \033[36m{naturalsize(store.store_size)} \033[90m/ \033[36m{naturalsize(store.store_limit)} \033[90m(\033[36m{round((store.store_size / store.store_limit) * 100, 1)}%\033[90m)")
+    print(f"\033[90mFile size limit: \033[36m{naturalsize(store.file_limit)}\033[90m, Current files: \033[36m{store.store_length}\033[90m, Protected: {'\033[31myes' if store.protected else '\033[32mno'}")
