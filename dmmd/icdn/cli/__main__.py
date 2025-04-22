@@ -45,6 +45,8 @@ def full_view(response: DataModel) -> None:
         for k, v in response.data.items():
             print(f"    \033[34m{k}\033[90m: \033[32m{v}")
 
+    print()
+
 # Commands
 @icdn.command()
 @asyncclick.argument("uuid")
@@ -74,14 +76,14 @@ async def query(uuid: str) -> None:
 
 @icdn.command()
 @asyncclick.argument("name", nargs = -1, required = False)
-async def search(name: tuple[str], **kwargs) -> None:
-    response = await getattr(get_cdn(), "search_query" if kwargs.get("query") else "search")(kwargs | {
+async def search(name: tuple[str], query: bool, **kwargs) -> None:
+    response = await getattr(get_cdn().search(**kwargs | {
         "name": " ".join(name) if name else None,
         "order": {"ASC": SortOrder.ASCENDING, "DSC": SortOrder.DESCENDING}[kwargs["order"].upper()],
         "sort": {"NAME": SortType.NAME, "TIME": SortType.TIME, "UUID": SortType.UUID, "SIZE": SortType.SIZE}[kwargs["sort"].upper()],
         "tags": kwargs["tags"].split(",") if kwargs["tags"] is not None else None
-    })  # type: ignore
-    if kwargs.get("query"):
+    }), "query" if query else "fetch")()
+    if not query:
         [print(f"* \033[32m{uuid}\033[0m") for uuid in response]
 
     else:
@@ -94,11 +96,10 @@ attach(search_params, search)
 @asyncclick.option("--page", type = int, required = False, default = 1, help = "Page offset.")
 @asyncclick.option("--query", type = bool, is_flag = True, required = False, default = False, help = "Show entire summaries instead of just UUIDs.")
 async def list(count: int, page: int, query: bool) -> None:
-    response = await getattr(get_cdn(), "list_query" if query else "list")(count, page - 1)
+    response = await getattr(get_cdn().list(count, page - 1), "query" if query else "fetch")()
     if not response:
         return print("\033[31mNo items were returned.\033[0m")
 
-    print(f"Showing {len(response)} items from page {page}:")
     if not query:
         print("\n".join(f"  * \033[32m{uuid}\033[0m" for uuid in response))
 
