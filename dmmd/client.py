@@ -7,7 +7,7 @@ import asyncio
 
 from aiohttp import ClientSession
 
-from dmmd.exceptions import ServerError, EXCEPTION_MAP
+from dmmd.exceptions import EXCEPTION_MAP, ServerException
 
 # Singleton
 class Client:
@@ -41,7 +41,7 @@ class Client:
                 if json["code"] in EXCEPTION_MAP:
                     raise EXCEPTION_MAP[json["code"]](json["message"])
 
-                raise ServerError(
+                raise ServerException(
                     "Received unknown error from server! " +
                     f"{json['code']}: {json['message']}"
                 )

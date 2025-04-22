@@ -8,7 +8,10 @@ class GenericInvalid(DmmDException):
     pass
 
 # Special Exceptions
-class ServerError(DmmDException):
+class ServerException(DmmDException):
+    pass
+
+class UnknownException(DmmDException):
     pass
 
 # Specific Exceptions
@@ -65,5 +68,7 @@ EXCEPTION_MAP = {
     "MISSING_ASSET": MissingAsset,
     "MISSING_CONTENT": MissingContent,
     "UNAUTHORIZED_TOKEN": UnauthorizedToken,
-    "UNSUPPORTED_MIME": UnsupportedMime
+    "UNSUPPORTED_MIME": UnsupportedMime,
+    "SERVER_EXCEPTION": ServerException,
+    "UNKNOWN_EXCEPTION": UnknownException
 }
