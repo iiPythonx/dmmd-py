@@ -68,6 +68,11 @@ type StoreModel = {
     size:        int
 }
 
+type MultiQueryResponse = {
+    uuids:     list[str]
+    summaries: list[DataModel]
+}
+
 iCDN.file(uuid: str) -> bytes
 
 iCDN.query(uuid: str) -> DataModel
@@ -84,13 +89,15 @@ iCDN.search(
     page?:    int         = 0,
     sort?:    SortType    = SortType.TIME,
     tags?:    list[str],
-    uuid?:    str
-) -> list[str[UUID]]
+    uuid?:    str,
+    query?:   bool        = False
+) -> MultiQueryResponse
 
 iCDN.list(
-    count?: int = 25
-    page?:  int = 0
-) -> list[str[UUID]]
+    count?: int  = 25
+    page?:  int  = 0,
+    query?: bool = False
+) -> MultiQueryResponse
 
 iCDN.add(
     file:   Path,

@@ -75,31 +75,35 @@ async def query(uuid: str) -> None:
 @icdn.command()
 @asyncclick.argument("name", nargs = -1, required = False)
 async def search(name: tuple[str], **kwargs) -> None:
-    for uuid in await get_cdn().search(**kwargs | {
+    response = await get_cdn().search(**kwargs | {
         "name": " ".join(name),
         "order": {"ASC": SortOrder.ASCENDING, "DSC": SortOrder.DESCENDING}[kwargs["order"].upper()],
         "sort": {"NAME": SortType.NAME, "TIME": SortType.TIME, "UUID": SortType.UUID, "SIZE": SortType.SIZE}[kwargs["sort"].upper()],
-        "tags": kwargs["tags"].split(",") if kwargs["tags"] is not None else None,
-    }):
-        print(f"* \033[32m{uuid}\033[0m")
+        "tags": kwargs["tags"].split(",") if kwargs["tags"] is not None else None
+    })
+    if kwargs.get("query"):
+        [print(f"* \033[32m{uuid}\033[0m") for uuid in response.uuids]
+
+    else:
+        [full_view(summary) for summary in response.summaries]
 
 attach(search_params, search)
 
 @icdn.command()
 @asyncclick.option("--count", type = int, required = False, default = 25, help = "The number of UUIDs returned per page.")
 @asyncclick.option("--page", type = int, required = False, default = 1, help = "Page offset.")
-@asyncclick.option("--save", type = asyncclick.Path(path_type = Path), required = False, help = "File to save UUIDs to.")
-async def list(count: int, page: int, save: typing.Optional[Path] = None) -> None:
-    uuids = await get_cdn().list(count, page - 1)
-    if not uuids:
-        return print("\033[31mNo UUIDs were returned.\033[0m")
+@asyncclick.option("--query", type = bool, is_flag = True, required = False, default = False, help = "Show entire summaries instead of just UUIDs.")
+async def list(count: int, page: int, query: bool) -> None:
+    response = await get_cdn().list(count, page - 1, query)
+    if not response.uuids:
+        return print("\033[31mNo items were returned.\033[0m")
 
-    print(f"Showing {len(uuids)} entries from page {page}:")
-    print("\n".join(f"  * \033[32m{uuid}\033[0m" for uuid in uuids[:10]))
+    print(f"Showing {len(response.uuids)} items from page {page}:")
+    if not query:
+        print("\n".join(f"  * \033[32m{uuid}\033[0m" for uuid in response.uuids))
 
-    if save is not None:
-        save.write_text("\n".join(uuids))
-        print(f"\nSaved to \033[33m{save}\033[0m.")
+    else:
+        [full_view(summary) for summary in response.summaries]
 
 async def upload(
     file: typing.Optional[Path] = None,

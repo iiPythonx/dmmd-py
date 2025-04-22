@@ -6,6 +6,7 @@ import typing
 from enum import Enum
 from pathlib import Path
 from datetime import datetime
+from dataclasses import dataclass
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -34,6 +35,11 @@ class DataModel(BaseModel):
     @field_validator("time", mode = "before")
     def convert_timestamp(cls, value: int) -> datetime:
         return datetime.fromtimestamp(value / 1000)
+
+@dataclass
+class MultiQueryResponse:
+    uuids:     list[str]
+    summaries: list[DataModel]
 
 class StoreModel(BaseModel):
     file_limit:   int = Field(alias = "fileLimit")
@@ -70,17 +76,22 @@ class iCDN:
         tags:      typing.Optional[list[str]] = None,
         uuid:      typing.Optional[str]       = None,
         mime:      typing.Optional[str]       = None,
-        extension: typing.Optional[str]       = None
-    ) -> list[str]:
-        return await self.client.request("/search", params = {
+        extension: typing.Optional[str]       = None,
+        query:     bool                       = False
+    ) -> MultiQueryResponse:
+        response = await self.client.request("/search", params = {
             key: value
             for key, value in {
                 "begin": begin, "end": end, "minimum": minimum, "maximum": maximum,
                 "count": count, "loose": str(loose).lower(), "name": name, "order": order.value,
                 "page": page, "sort": sort.value, "tags": ",".join(tags) if tags else None,
-                "uuid": uuid,  "mime": mime, "extension": extension
+                "uuid": uuid,  "mime": mime, "extension": extension, "query": str(query).lower(),
             }.items() if value is not None
         })
+        return MultiQueryResponse(
+            [item["uuid"] for item in response] if query is True else response,
+            [DataModel(**item) for item in response] if query is True else []
+        )
 
     async def all(self, count: int = 25, page: int = 0) -> list[DataModel]:
         return [
@@ -125,8 +136,13 @@ class iCDN:
         })
         return DataModel(**response)
 
-    async def list(self, count: int = 25, page: int = 0) -> list[str]:
-        return await self.client.request("/list", params = {"count": count, "page": page})
+    # Handle listing
+    async def list(self, count: int = 25, page: int = 0, query: bool = False) -> MultiQueryResponse:
+        response = await self.client.request("/list", params = {"count": count, "page": page, "query": str(query).lower()})
+        return MultiQueryResponse(
+            [item["uuid"] for item in response] if query is True else response,
+            [DataModel(**item) for item in response] if query is True else []
+        )
 
     async def details(self) -> StoreModel:
         return StoreModel(**await self.client.request("/details"))
