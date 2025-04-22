@@ -157,7 +157,7 @@ async def upload(
 
         print(
             f"\r\033[32m✓ Upload complete \033[90min \033[36m{round(take_time() - start_time, 1)}s\033[90m. " +
-            f"{'New ' if uuid is None else ''}UUID: \033[33m{response.uuids[0]}\033[90m."
+            f"{'New ' if uuid is None else ''}UUID: \033[33m{response.uuid}\033[90m."
         )
 
     except DmmDException as e:
