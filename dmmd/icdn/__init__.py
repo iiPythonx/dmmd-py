@@ -16,8 +16,7 @@ class iCDN:
 
     # Endpoint handlers
     async def file(self, uuid: str) -> bytes:
-        async with self.client._client.get(f"/file/{uuid}") as response:
-            return await response.read()
+        return await self.client.request(f"/file/{uuid}")
 
     async def query(self, uuid: str) -> DataModel:
         return DataModel(**await self.client.request(f"/query/{uuid}"))

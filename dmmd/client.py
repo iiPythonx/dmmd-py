@@ -36,14 +36,17 @@ class Client:
             "POST" if "data" in kwargs else "GET", endpoint,
             **kwargs
         ) as response:
-            json = await response.json()
-            if response.status != 200:
-                if json["code"] in EXCEPTION_MAP:
-                    raise EXCEPTION_MAP[json["code"]](json["message"])
+            if response.headers.get("Content-Type", "").split(";")[0] == "application/json":
+                json = await response.json()
+                if response.status != 200:
+                    if json["code"] in EXCEPTION_MAP:
+                        raise EXCEPTION_MAP[json["code"]](json["message"])
 
-                raise ServerException(
-                    "Received unknown error from server! " +
-                    f"{json['code']}: {json['message']}"
-                )
+                    raise ServerException(
+                        "Received unknown error from server! " +
+                        f"{json['code']}: {json['message']}"
+                    )
 
-            return json
+                return json
+
+            return await response.read()  # Bytes

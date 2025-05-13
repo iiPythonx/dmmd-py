@@ -154,8 +154,38 @@ await endpoint.fetch()  # Returns a list of UUIDs
 
 </details>
 
+### Static
+
+```py
+from dmmd.static import Static
+connection = Static()
+```
+
+<details>
+
+<summary>Supported Endpoints</summary>
+
+```py
+async Static.file(scope: str, path: str, token?: str) -> bytes
+```
+
+</details>
+
+<details>
+
+<summary>Exceptions</summary>
+
+- dmmd.exceptions.DmmDException
+    - dmmd.exceptions.OutOfBoundsFile
+    - dmmd.exceptions.UnknownEndpoint
+    - dmmd.exceptions.UnknownDirectory
+    - dmmd.exceptions.UnknownFile
+
+</details>
+
 ## Exceptions
 
 - dmmd.exceptions.DmmDException
     - dmmd.exceptions.ServerError
         - Fired when the server replies with an unknown status code.
+    - dmmd.exceptions.UnauthorizedToken
