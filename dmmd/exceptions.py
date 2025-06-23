@@ -55,16 +55,13 @@ class UnsupportedMime(DmmDException):
     pass
 
 # Exceptions / Static
-class OutOfBoundsFile(DmmDException):
+class MissingEndpoint(DmmDException):
     pass
 
-class UnknownEndpoint(DmmDException):
+class RouteAbort(DmmDException):
     pass
 
-class UnknownDirectory(DmmDException):
-    pass
-
-class UnknownFile(DmmDException):
+class ServerFailure(DmmDException):
     pass
 
 # Map codes to exception
@@ -89,9 +86,8 @@ EXCEPTION_MAP = {
     "MISSING_CONTENT"   : MissingContent,
     "UNSUPPORTED_MIME"  : UnsupportedMime,
 
-    # Static (https://github.com/dmmd-web/static-cdn/blob/main/index.ts#L17-L46)
-    "OUT_OF_BOUNDS_FILE": OutOfBoundsFile,
-    "UNKNOWN_ENDPOINT"  : UnknownEndpoint,
-    "UNKNOWN_DIRECTORY" : UnknownDirectory,
-    "UNKNOWN_FILE"      : UnknownFile
+    # Static (https://github.com/dmmd-servers/static-cdn/blob/main/core/faults.ts#L11-L28)
+    "MISSING_ENDPOINT"  : MissingEndpoint,
+    "ROUTE_ABORT"       : RouteAbort,
+    "SERVER_FAILURE"    : ServerFailure,
 }

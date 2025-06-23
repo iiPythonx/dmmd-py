@@ -166,7 +166,8 @@ connection = Static()
 <summary>Supported Endpoints</summary>
 
 ```py
-async Static.file(scope: str, path: str, token?: str) -> bytes
+async Static.directory(path?: str = "") -> list[str]
+async Static.file(path: str) -> bytes
 ```
 
 </details>
