@@ -184,6 +184,46 @@ async Static.file(path: str) -> bytes
 
 </details>
 
+### Data
+
+```py
+from dmmd.data import Data
+connection = Data()
+```
+
+<details>
+
+<summary>Supported Endpoints</summary>
+
+```py
+type Tag = {
+    id:   str
+    name: str
+}
+
+type Anime = {
+    begin:   datetime | None
+    comment: str | Noned
+    end:     datetime | None
+    id:      str
+    name:    str
+    rating:  int | float | None
+    tags:    list[str]
+    title:   str
+    wiki:    str | None
+}
+
+type Game = Anime | {
+    users: list[str]
+}
+
+async Data.tags()  -> list[Tag]
+async Data.anime() -> list[Anime]
+async Data.games() -> list[Game]
+```
+
+</details>
+
 ## Exceptions
 
 - dmmd.exceptions.DmmDException
