@@ -202,9 +202,9 @@ type Tag = {
 }
 
 type Anime = {
-    begin:   datetime | None
+    begin:   str | None
     comment: str | Noned
-    end:     datetime | None
+    end:     str | None
     id:      str
     name:    str
     rating:  int | float | None
